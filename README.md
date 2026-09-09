@@ -2,7 +2,7 @@
 
 一款面向轻小说阅读的 Android 应用 —— 数据来自 wenku8，支持搜索、收藏、阅读、书签与阅读进度同步。**全新架构重写**（Compose + MVVM），现代化、美观、动效流畅。
 
-> ⚠️ 本项目为对 [MewX/light-novel-library_Wenku8_Android](https://github.com/MewX/light-novel-library_Wenku8_Android) 的全量重写（不包含原作者的私有 API 核心模块）。数据来源为 wenku8 公开接口，仅供学习交流，请勿用于商业用途。
+> ⚠️ 本项目为对 [MewX/light-novel-library_Wenku8_Android](https://github.com/MewX/light-novel-library_Wenku8_Android) 的全量重写。数据来源为 wenku8 公开接口，仅供学习交流，请勿用于商业用途。
 
 ## ✨ 功能特性
 
@@ -21,27 +21,27 @@
 
 ## 📱 界面一览
 
-| 首页（搜索 + 最近阅读） | 我的小说（本地收藏卡片） |
-|:---:|:---:|
+| 首页（搜索 + 最近阅读）     | 我的小说（本地收藏卡片）            |
+|:-----------------:|:-----------------------:|
 | ![首页](img/首页.jpg) | ![我的小说页](img/我的小说页.jpg) |
 
-| 小说详情（信息 + 章节树） | 阅读器（沉浸翻页） |
-|:---:|:---:|
+| 小说详情（信息 + 章节树）          | 阅读器（沉浸翻页）                 |
+|:-----------------------:|:-------------------------:|
 | ![小说详情页](img/小说详情页.jpg) | ![阅读器阅读页](img/阅读器阅读页.jpg) |
 
 ## 🛠 技术栈
 
-| 领域 | 技术 |
-|---|---|
-| UI | Jetpack Compose + Material 3 |
-| 架构 | MVVM + Repository 模式 |
-| 异步 | Kotlin Coroutines / Flow |
-| 依赖注入 | Hilt |
-| 本地存储 | Room（收藏/进度/书签/搜索历史）+ DataStore（偏好） |
-| 网络 | OkHttp（wenku8 自定义 Base64 协议） |
-| 图片 | Coil + 自定义封面加载（`do=cover` 二进制接口 + 内存缓存） |
-| 动效 | Lottie-Compose + Compose Animation |
-| 字体 | 阅读正文使用中文衬线（Noto Serif / 宋体系） |
+| 领域   | 技术                                      |
+| ---- | --------------------------------------- |
+| UI   | Jetpack Compose + Material 3            |
+| 架构   | MVVM + Repository 模式                    |
+| 异步   | Kotlin Coroutines / Flow                |
+| 依赖注入 | Hilt                                    |
+| 本地存储 | Room（收藏/进度/书签/搜索历史）+ DataStore（偏好）      |
+| 网络   | OkHttp（wenku8 自定义 Base64 协议）            |
+| 图片   | Coil + 自定义封面加载（`do=cover` 二进制接口 + 内存缓存） |
+| 动效   | Lottie-Compose + Compose Animation      |
+| 字体   | 阅读正文使用中文衬线（Noto Serif / 宋体系）            |
 
 ## 🏗 项目结构
 
