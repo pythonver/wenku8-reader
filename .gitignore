@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+**/build/
+
+# Local configuration (machine-specific)
+local.properties
+*.properties.bak
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.kotlin/
+.app/build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Android
+captures/
+.externalNativeBuild/
+.cxx/

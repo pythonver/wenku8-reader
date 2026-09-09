@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- wenku8 API and image CDN are plain HTTP — Android 9+ blocks cleartext by
+     default, so whitelist the domains the app actually talks to. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">app.wenku8.cn</domain>
+        <domain includeSubdomains="true">pic.wenku8.cn</domain>
+        <domain includeSubdomains="true">wenku8.cn</domain>
+    </domain-config>
+</network-security-config>
