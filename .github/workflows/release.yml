@@ -3,6 +3,9 @@ name: Build & Release
 # 触发方式：
 #   1. 打 tag 自动触发（推荐）：git tag v0.1.5 && git push origin v0.1.5
 #   2. 手动触发：Actions 页面 → Build & Release → Run workflow
+#
+# 签名：若配置了 Secrets（KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD），
+#       构建已签名的 release APK；否则构建 debug APK。
 on:
   push:
     tags:
@@ -28,20 +31,57 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon
+      - name: Prepare signing keystore
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          mkdir -p keystore
+          echo "$KEYSTORE_BASE64" | base64 -d > keystore/release.keystore
+          cat > keystore/keystore.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build APK
+        run: |
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Building signed release APK"
+            ./gradlew :app:assembleRelease --no-daemon
+          else
+            echo "No signing secrets — building debug APK"
+            ./gradlew :app:assembleDebug --no-daemon
+          fi
+
+      - name: Determine APK path
+        id: apk
+        run: |
+          if [ -f app/build/outputs/apk/release/app-release.apk ]; then
+            echo "path=app/build/outputs/apk/release/app-release.apk" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=app/build/outputs/apk/debug/app-debug.apk" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Rename APK with version
+        run: |
+          cp "${{ steps.apk.outputs.path }}" "wenku8-reader-${{ github.ref_name }}.apk"
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: wenku8-reader-${{ github.ref_name }}.apk
           if-no-files-found: error
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: wenku8-reader-${{ github.ref_name }}.apk
           name: "wenku8-reader ${{ github.ref_name }}"
           generate_release_notes: true
