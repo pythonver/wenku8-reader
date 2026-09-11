@@ -30,7 +30,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
@@ -67,7 +66,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -78,9 +76,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
 import com.wenku8.reader.core.data.BookmarkEntity
 import com.wenku8.reader.core.data.model.NovelContentItem
+import com.wenku8.reader.core.designsystem.components.NovelIllustration
 import com.wenku8.reader.core.designsystem.theme.BrandCyan
 import com.wenku8.reader.core.designsystem.theme.ReaderColors
 import com.wenku8.reader.core.designsystem.theme.ReaderThemeMode
@@ -166,19 +164,10 @@ fun ReaderScreen(
                     .onSizeChanged { textAreaSize = it },
             ) {
                 val bodyStyle = readerBodyStyle(fontSize).copy(lineHeight = (fontSize * lineHeight).sp)
-                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { pageIndex ->
-                    val page = pages.getOrNull(pageIndex) ?: return@HorizontalPager
-                    ReaderPageContent(
-                        page = page,
-                        content = content,
-                        bodyStyle = bodyStyle,
-                        readerColors = readerColors,
-                        paragraphGap = gapDp,
-                        imageHeight = imageHeightDp,
-                    )
-                }
 
-                // Tap zones: left = prev page, right = next page, centre = toggle bars.
+                // Tap zones sit BELOW the pager: a consuming child (e.g. the
+                // illustration's retry tile) wins the touch; plain text does
+                // not consume, so taps still reach the page-flip detector.
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -201,6 +190,17 @@ fun ReaderScreen(
                             }
                         },
                 )
+                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { pageIndex ->
+                    val page = pages.getOrNull(pageIndex) ?: return@HorizontalPager
+                    ReaderPageContent(
+                        page = page,
+                        content = content,
+                        bodyStyle = bodyStyle,
+                        readerColors = readerColors,
+                        paragraphGap = gapDp,
+                        imageHeight = imageHeightDp,
+                    )
+                }
             }
         } else if (!loading) {
             Text("章节加载失败", color = readerColors.text, modifier = Modifier.align(Alignment.Center))
@@ -321,15 +321,11 @@ private fun ReaderPageContent(
                     }
                 }
                 NovelContentItem.ContentType.IMAGE -> {
-                    AsyncImage(
-                        model = item.content,
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
+                    NovelIllustration(
+                        url = item.content,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(imageHeight)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(readerColors.divider),
+                            .height(imageHeight),
                     )
                 }
             }

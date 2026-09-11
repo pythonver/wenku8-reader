@@ -14,14 +14,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -34,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wenku8.reader.core.data.ReadingProgressEntity
 import com.wenku8.reader.core.designsystem.components.NovelCoverImage
 import com.wenku8.reader.core.designsystem.components.StaggeredItem
+import com.wenku8.reader.core.designsystem.components.SwipeRevealAction
 import com.wenku8.reader.core.designsystem.theme.Spacing
 import com.wenku8.reader.core.util.AppVersion
 import com.wenku8.reader.ui.AppBottomBar
@@ -49,6 +56,7 @@ fun HomeScreen(
 ) {
     val recentReads by viewModel.recentReads.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var pendingDelete by remember { mutableStateOf<ReadingProgressEntity?>(null) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -95,12 +103,39 @@ fun HomeScreen(
             } else {
                 recentReads.forEachIndexed { index, progress ->
                     StaggeredItem(index = index) {
-                        RecentReadCard(progress = progress, onClick = { onOpenDetail(progress.aid) })
+                        SwipeRevealAction(
+                            actionIcon = Icons.Outlined.Delete,
+                            actionContentDescription = "删除阅读记录",
+                            onAction = { pendingDelete = progress },
+                            onContentClick = { onOpenDetail(progress.aid) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = Spacing.xxs),
+                        ) {
+                            RecentReadCard(progress = progress)
+                        }
                     }
                 }
             }
             Spacer(Modifier.height(Spacing.xl))
         }
+    }
+
+    pendingDelete?.let { progress ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("删除阅读记录") },
+            text = { Text("确定删除《${progress.title.ifEmpty { "小说 #${progress.aid}" }}》的最近阅读记录吗？") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.removeRecent(progress.aid)
+                    pendingDelete = null
+                }) { Text("删除") }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) { Text("取消") }
+            },
+        )
     }
 }
 
@@ -135,15 +170,12 @@ private fun SearchBarHero(onClick: () -> Unit) {
 }
 
 @Composable
-private fun RecentReadCard(progress: ReadingProgressEntity, onClick: () -> Unit) {
+private fun RecentReadCard(progress: ReadingProgressEntity) {
     Surface(
-        onClick = onClick,
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Spacing.xxs),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

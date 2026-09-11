@@ -82,6 +82,9 @@ interface ProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(progress: ReadingProgressEntity)
+
+    @Query("DELETE FROM reading_progress WHERE aid = :aid")
+    suspend fun delete(aid: Int)
 }
 
 @Dao

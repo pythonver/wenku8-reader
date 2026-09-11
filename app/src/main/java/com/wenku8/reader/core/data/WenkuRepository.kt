@@ -94,6 +94,8 @@ class WenkuRepository @Inject constructor(
         )
     }
 
+    suspend fun removeProgress(aid: Int) = db.progressDao().delete(aid)
+
     // ---- bookmarks ----
     fun observeBookmarks(aid: Int): Flow<List<BookmarkEntity>> = db.bookmarkDao().observeByAid(aid)
 

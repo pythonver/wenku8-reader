@@ -1,6 +1,5 @@
 package com.wenku8.reader.feature.library
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,13 +13,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BookmarkRemove
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,7 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wenku8.reader.core.data.FavoriteNovelEntity
 import com.wenku8.reader.core.designsystem.components.NovelCoverImage
 import com.wenku8.reader.core.designsystem.components.StaggeredItem
+import com.wenku8.reader.core.designsystem.components.SwipeRevealAction
 import com.wenku8.reader.core.designsystem.theme.Spacing
 import com.wenku8.reader.ui.AppBottomBar
 
@@ -74,12 +71,19 @@ fun LibraryScreen(
                     contentPadding = PaddingValues(horizontal = Spacing.page, vertical = Spacing.xs),
                 ) {
                     items(favorites, key = { it.aid }) { favorite ->
-                        StaggeredItem(index = favorites.indexOf(favorite).coerceAtLeast(0)) {
-                            FavoriteRow(
-                                favorite = favorite,
-                                onClick = { onOpenDetail(favorite.aid) },
-                                onRemove = { pendingRemove = favorite },
-                            )
+                        val index = favorites.indexOf(favorite).coerceAtLeast(0)
+                        StaggeredItem(index = index) {
+                            SwipeRevealAction(
+                                actionIcon = Icons.Outlined.BookmarkRemove,
+                                actionContentDescription = "取消收藏",
+                                onAction = { pendingRemove = favorite },
+                                onContentClick = { onOpenDetail(favorite.aid) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = Spacing.xxs),
+                            ) {
+                                FavoriteRow(favorite = favorite)
+                            }
                         }
                     }
                 }
@@ -90,7 +94,7 @@ fun LibraryScreen(
     pendingRemove?.let { favorite ->
         AlertDialog(
             onDismissRequest = { pendingRemove = null },
-            title = { Text("移除收藏") },
+            title = { Text("取消收藏") },
             text = { Text("确定把《${favorite.title}》从「我的小说」中移除吗？") },
             confirmButton = {
                 TextButton(onClick = {
@@ -126,17 +130,12 @@ private fun EmptyLibrary() {
 }
 
 @Composable
-private fun FavoriteRow(
-    favorite: FavoriteNovelEntity,
-    onClick: () -> Unit,
-    onRemove: () -> Unit,
-) {
+private fun FavoriteRow(favorite: FavoriteNovelEntity) {
     Surface(
-        onClick = onClick,
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth().padding(vertical = Spacing.xxs),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -169,31 +168,12 @@ private fun FavoriteRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            IconButton(onClick = onRemove) {
-                Icon(
-                    Icons.Outlined.BookmarkRemove,
-                    contentDescription = "移除收藏",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Icon(
+                Icons.Outlined.BookmarkRemove,
+                contentDescription = "左滑取消收藏",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                modifier = Modifier.size(18.dp),
+            )
         }
-    }
-}
-
-/** Offline-friendly cover placeholder: the title's first character on a brand-tinted tile. */
-@Composable
-private fun TitleBlock(title: String) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(Spacing.xs))
-            .background(MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Text(
-            title.trim().firstOrNull()?.toString() ?: "书",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
     }
 }

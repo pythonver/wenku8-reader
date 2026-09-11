@@ -8,14 +8,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    repo: WenkuRepository,
+    private val repo: WenkuRepository,
 ) : ViewModel() {
 
     /** Novels read recently (most recent first) for the "最近阅读" section. */
     val recentReads: StateFlow<List<ReadingProgressEntity>> = repo.observeRecentReads()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun removeRecent(aid: Int) {
+        viewModelScope.launch { repo.removeProgress(aid) }
+    }
 }

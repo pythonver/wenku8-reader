@@ -5,6 +5,8 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">app.wenku8.cn</domain>
         <domain includeSubdomains="true">pic.wenku8.cn</domain>
+        <!-- pic.wenku8.cn 301-redirects here (http→https); whitelist the redirect target too -->
+        <domain includeSubdomains="true">777743.xyz</domain>
         <domain includeSubdomains="true">wenku8.cn</domain>
     </domain-config>
 </network-security-config>
