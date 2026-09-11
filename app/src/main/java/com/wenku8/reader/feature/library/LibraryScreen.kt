@@ -168,12 +168,6 @@ private fun FavoriteRow(favorite: FavoriteNovelEntity) {
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Icon(
-                Icons.Outlined.BookmarkRemove,
-                contentDescription = "左滑取消收藏",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                modifier = Modifier.size(18.dp),
-            )
         }
     }
 }

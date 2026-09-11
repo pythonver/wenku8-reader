@@ -29,11 +29,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,20 +66,25 @@ fun DetailScreen(
     val isFavorite by viewModel.isFavorite.collectAsStateWithLifecycle()
     val resumeHint by viewModel.resumeHint.collectAsStateWithLifecycle()
 
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        when {
-            loading && detail == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-            detail == null -> ErrorState(onRetry = viewModel::load, modifier = Modifier.align(Alignment.Center))
-            else -> DetailContent(
-                detail = detail!!,
-                cover = cover,
-                isFavorite = isFavorite,
-                resumeHint = resumeHint,
-                onBack = onBack,
-                onToggleFavorite = viewModel::toggleFavorite,
-                onRead = { onOpenNovel(aid, null) },
-                onOpenChapter = { cid -> onOpenNovel(aid, cid) },
-            )
+    // Provide onBackground as the default content color: the root is a plain
+    // Box (not Surface), so without this unspecified title/icon colors default
+    // to black and vanish in night mode.
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onBackground) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            when {
+                loading && detail == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                detail == null -> ErrorState(onRetry = viewModel::load, modifier = Modifier.align(Alignment.Center))
+                else -> DetailContent(
+                    detail = detail!!,
+                    cover = cover,
+                    isFavorite = isFavorite,
+                    resumeHint = resumeHint,
+                    onBack = onBack,
+                    onToggleFavorite = viewModel::toggleFavorite,
+                    onRead = { onOpenNovel(aid, null) },
+                    onOpenChapter = { cid -> onOpenNovel(aid, cid) },
+                )
+            }
         }
     }
 }

@@ -57,6 +57,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +80,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wenku8.reader.core.data.BookmarkEntity
 import com.wenku8.reader.core.data.model.NovelContentItem
+import com.wenku8.reader.core.designsystem.components.IllustrationErrorRegions
 import com.wenku8.reader.core.designsystem.components.NovelIllustration
 import com.wenku8.reader.core.designsystem.theme.BrandCyan
 import com.wenku8.reader.core.designsystem.theme.ReaderColors
@@ -119,6 +122,12 @@ fun ReaderScreen(
     var showBookmarkDialog by remember { mutableStateOf(false) }
 
     val currentChapter = chapters.getOrNull(chapterIndex)
+
+    // Failed illustrations register their screen rects here so the tap overlay
+    // (which sits above the pager) can forward taps as retries.
+    val errorRegions = remember { IllustrationErrorRegions() }
+    var illustrationRetryTick by remember { mutableIntStateOf(0) }
+    var tapLayerCoords by remember { mutableStateOf<androidx.compose.ui.layout.LayoutCoordinates?>(null) }
 
     // Text-area size is reported by the padded content box (insets included).
     var textAreaSize by remember { mutableStateOf(IntSize.Zero) }
@@ -164,15 +173,34 @@ fun ReaderScreen(
                     .onSizeChanged { textAreaSize = it },
             ) {
                 val bodyStyle = readerBodyStyle(fontSize).copy(lineHeight = (fontSize * lineHeight).sp)
+                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { pageIndex ->
+                    val page = pages.getOrNull(pageIndex) ?: return@HorizontalPager
+                    ReaderPageContent(
+                        page = page,
+                        content = content,
+                        bodyStyle = bodyStyle,
+                        readerColors = readerColors,
+                        paragraphGap = gapDp,
+                        imageHeight = imageHeightDp,
+                        errorRegions = errorRegions,
+                        retryTick = illustrationRetryTick,
+                    )
+                }
 
-                // Tap zones sit BELOW the pager: a consuming child (e.g. the
-                // illustration's retry tile) wins the touch; plain text does
-                // not consume, so taps still reach the page-flip detector.
+                // Tap zones overlay the pager: left = prev page, right = next
+                // page, centre = toggle bars. A tap landing on a failed
+                // illustration is forwarded to that image as a retry.
                 Box(
                     Modifier
                         .fillMaxSize()
+                        .onGloballyPositioned { tapLayerCoords = it }
                         .pointerInput(Unit) {
                             detectTapGestures { offset ->
+                                val rootPoint = tapLayerCoords?.localToRoot(offset) ?: offset
+                                if (errorRegions.contains(rootPoint.x, rootPoint.y)) {
+                                    illustrationRetryTick++
+                                    return@detectTapGestures
+                                }
                                 val w = size.width
                                 when {
                                     offset.x < w / 3f -> scope.launch {
@@ -190,17 +218,6 @@ fun ReaderScreen(
                             }
                         },
                 )
-                HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { pageIndex ->
-                    val page = pages.getOrNull(pageIndex) ?: return@HorizontalPager
-                    ReaderPageContent(
-                        page = page,
-                        content = content,
-                        bodyStyle = bodyStyle,
-                        readerColors = readerColors,
-                        paragraphGap = gapDp,
-                        imageHeight = imageHeightDp,
-                    )
-                }
             }
         } else if (!loading) {
             Text("章节加载失败", color = readerColors.text, modifier = Modifier.align(Alignment.Center))
@@ -301,6 +318,8 @@ private fun ReaderPageContent(
     readerColors: ReaderColors,
     paragraphGap: androidx.compose.ui.unit.Dp,
     imageHeight: androidx.compose.ui.unit.Dp,
+    errorRegions: IllustrationErrorRegions,
+    retryTick: Int,
 ) {
     Column(
         Modifier
@@ -323,6 +342,8 @@ private fun ReaderPageContent(
                 NovelContentItem.ContentType.IMAGE -> {
                     NovelIllustration(
                         url = item.content,
+                        errorRegions = errorRegions,
+                        retryTick = retryTick,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(imageHeight),
