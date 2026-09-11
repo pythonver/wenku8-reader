@@ -25,13 +25,12 @@ android {
         applicationId = "com.wenku8.reader"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.3.0"
+        versionCode = 10
+        versionName = "1.3.1"
 
-        // In-app update master switch. Must stay false while the GitHub repo
-        // (pythonver/wenku8-reader) is private — the releases API 404s without
-        // auth. Flip to "true" once the repo is public; no business code changes.
-        buildConfigField("boolean", "UPDATE_CHECK_ENABLED", "false")
+        // In-app update switch. GitHub Releases are queried anonymously; while
+        // the repo is private the API 404s and the check stays silent (no UI).
+        buildConfigField("boolean", "UPDATE_CHECK_ENABLED", "true")
     }
 
     signingConfigs {

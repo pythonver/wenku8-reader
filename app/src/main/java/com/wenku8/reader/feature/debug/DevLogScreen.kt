@@ -55,7 +55,6 @@ fun DevLogScreen(
     val lines by AppLog.lines.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
-    val scope = rememberCoroutineScope()
 
     // Keep the view pinned to the latest lines.
     LaunchedEffect(lines.size) {
@@ -85,29 +84,26 @@ fun DevLogScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            TextButton(onClick = onCheckUpdate, enabled = !checkingUpdate) {
+            IconButton(
+                onClick = onCheckUpdate,
+                enabled = !checkingUpdate,
+            ) {
                 if (checkingUpdate) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(20.dp),
                         strokeWidth = 2.dp,
                     )
                 } else {
-                    Icon(Icons.Outlined.SystemUpdate, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Outlined.SystemUpdate, contentDescription = "检查更新")
                 }
-                Spacer(Modifier.width(4.dp))
-                Text("检查更新")
             }
-            TextButton(onClick = {
+            IconButton(onClick = {
                 clipboard.setText(AnnotatedString(AppLog.allText()))
             }) {
-                Icon(Icons.Outlined.ContentCopy, contentDescription = null, modifier = Modifier.width(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("复制")
+                Icon(Icons.Outlined.ContentCopy, contentDescription = "复制日志")
             }
-            TextButton(onClick = { AppLog.clear() }) {
-                Icon(Icons.Outlined.DeleteSweep, contentDescription = null, modifier = Modifier.width(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("清空")
+            IconButton(onClick = { AppLog.clear() }) {
+                Icon(Icons.Outlined.DeleteSweep, contentDescription = "清空日志")
             }
         }
 
