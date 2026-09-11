@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +47,11 @@ import kotlinx.coroutines.launch
 
 /** In-app developer log viewer — no debugger needed. */
 @Composable
-fun DevLogScreen(onBack: () -> Unit) {
+fun DevLogScreen(
+    onBack: () -> Unit,
+    onCheckUpdate: () -> Unit = {},
+    checkingUpdate: Boolean = false,
+) {
     val lines by AppLog.lines.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val clipboard = LocalClipboardManager.current
@@ -77,6 +84,18 @@ fun DevLogScreen(onBack: () -> Unit) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            TextButton(onClick = onCheckUpdate, enabled = !checkingUpdate) {
+                if (checkingUpdate) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(Icons.Outlined.SystemUpdate, contentDescription = null, modifier = Modifier.size(16.dp))
+                }
+                Spacer(Modifier.width(4.dp))
+                Text("检查更新")
             }
             TextButton(onClick = {
                 clipboard.setText(AnnotatedString(AppLog.allText()))

@@ -19,12 +19,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wenku8.reader.feature.debug.DevLogScreen
 import com.wenku8.reader.feature.detail.DetailScreen
 import com.wenku8.reader.feature.home.HomeScreen
 import com.wenku8.reader.feature.library.LibraryScreen
 import com.wenku8.reader.feature.reader.ReaderScreen
 import com.wenku8.reader.feature.search.SearchScreen
+import com.wenku8.reader.feature.update.UpdateViewModel
 
 object Routes {
     const val HOME = "home"
@@ -68,15 +70,16 @@ fun AppBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(updateViewModel: UpdateViewModel) {
     val navController = rememberNavController()
-    AppNavHost(navController)
+    AppNavHost(navController, updateViewModel)
 }
 
 @Composable
-private fun AppNavHost(navController: NavHostController) {
+private fun AppNavHost(navController: NavHostController, updateViewModel: UpdateViewModel) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val checkingUpdate by updateViewModel.state.collectAsStateWithLifecycle()
 
     // Tab navigation: single-top + save/restore so switching tabs keeps each screen's state.
     val onNavigateTab: (String) -> Unit = { route ->
@@ -115,7 +118,11 @@ private fun AppNavHost(navController: NavHostController) {
         }
 
         composable(Routes.DEV_LOG) {
-            DevLogScreen(onBack = { navController.popBackStack() })
+            DevLogScreen(
+                onBack = { navController.popBackStack() },
+                onCheckUpdate = updateViewModel::checkNow,
+                checkingUpdate = checkingUpdate.checking,
+            )
         }
 
         composable(

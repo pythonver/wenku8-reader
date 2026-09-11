@@ -5,11 +5,13 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.wenku8.reader.core.designsystem.theme.ReaderThemeMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,6 +29,8 @@ class UserPreferences @Inject constructor(
         val lineHeight = floatPreferencesKey("reader_line_height")
         val pageFlip = booleanPreferencesKey("reader_page_flip")
         val eink = booleanPreferencesKey("reader_eink")
+        val updateLastCheckAt = longPreferencesKey("update_last_check_at")
+        val updateSkippedVersion = stringPreferencesKey("update_skipped_version")
     }
 
     val readerMode: Flow<ReaderThemeMode> = context.readerDataStore.data.map { prefs ->
@@ -55,5 +59,26 @@ class UserPreferences @Inject constructor(
 
     suspend fun setEink(enabled: Boolean) {
         context.readerDataStore.edit { it[Keys.eink] = enabled }
+    }
+
+    val updateLastCheckAt: Flow<Long> =
+        context.readerDataStore.data.map { it[Keys.updateLastCheckAt] ?: 0L }
+
+    val updateSkippedVersion: Flow<String?> =
+        context.readerDataStore.data.map { it[Keys.updateSkippedVersion] }
+
+    suspend fun getUpdateLastCheckAt(): Long = updateLastCheckAt.first()
+
+    suspend fun getUpdateSkippedVersion(): String? = updateSkippedVersion.first()
+
+    suspend fun setUpdateLastCheckAt(value: Long) {
+        context.readerDataStore.edit { it[Keys.updateLastCheckAt] = value }
+    }
+
+    suspend fun setUpdateSkippedVersion(value: String?) {
+        context.readerDataStore.edit { prefs ->
+            if (value == null) prefs.remove(Keys.updateSkippedVersion)
+            else prefs[Keys.updateSkippedVersion] = value
+        }
     }
 }

@@ -9,4 +9,9 @@ object AppVersion {
         val pi = context.packageManager.getPackageInfo(context.packageName, 0)
         "${pi.versionName} (code ${pi.longVersionCode})"
     }.getOrElse { "?" }
+
+    /** Raw versionName ("1.2.1"), or null if unreadable. */
+    fun installedVersionName(context: Context): String? = runCatching {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName
+    }.getOrNull()
 }

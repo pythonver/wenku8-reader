@@ -25,8 +25,13 @@ android {
         applicationId = "com.wenku8.reader"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.2.1"
+        versionCode = 9
+        versionName = "1.3.0"
+
+        // In-app update master switch. Must stay false while the GitHub repo
+        // (pythonver/wenku8-reader) is private — the releases API 404s without
+        // auth. Flip to "true" once the repo is public; no business code changes.
+        buildConfigField("boolean", "UPDATE_CHECK_ENABLED", "false")
     }
 
     signingConfigs {
@@ -61,6 +66,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -97,11 +103,11 @@ dependencies {
     // Image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // Lottie animations
-    implementation("com.airbnb.android:lottie-compose:6.5.2")
-
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
+
+    // Local unit tests
+    testImplementation("junit:junit:4.13.2")
 }

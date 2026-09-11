@@ -5,7 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wenku8.reader.core.designsystem.theme.WenkuTheme
+import com.wenku8.reader.feature.update.UpdateHost
+import com.wenku8.reader.feature.update.UpdateViewModel
 import com.wenku8.reader.ui.AppNavigation
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,7 +22,10 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             WenkuTheme {
-                AppNavigation()
+                // Activity-scoped: survives navigation/rotation, init auto-check runs once.
+                val updateViewModel: UpdateViewModel = hiltViewModel()
+                AppNavigation(updateViewModel)
+                UpdateHost(updateViewModel)
             }
         }
     }

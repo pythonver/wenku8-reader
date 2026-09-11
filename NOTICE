@@ -1,0 +1,28 @@
+wenku8-reader
+Copyright (C) 2026 wenku8-reader contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+----------------------------------------------------------------------
+
+This project is an independent rewrite that interoperates with the
+public wenku8 protocol. Its UI and architecture contain no code copied
+from upstream projects.
+
+Acknowledgement:
+  MewX/light-novel-library_Wenku8_Android (GPL-2.0)
+  https://github.com/MewX/light-novel-library_Wenku8_Android
+
+Novel text and cover data are copyright wenku8 and the respective
+authors; this software is for study and non-commercial use only.
