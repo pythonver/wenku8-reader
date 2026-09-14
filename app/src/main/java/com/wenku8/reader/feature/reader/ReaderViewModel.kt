@@ -110,12 +110,16 @@ class ReaderViewModel @Inject constructor(
                 return@launch
             }
             val raw = repo.fetchChapter(aid, chapter.cid)
+            // Anchor before content: the UI's per-chapter restore effect keys
+            // on (chapterIndex, content), so content must be the last state
+            // flip — otherwise the effect can briefly restore the previous
+            // chapter's anchor.
+            _anchor.value = restoreAnchor
             _content.value = raw.map { item ->
                 if (item.type == NovelContentItem.ContentType.TEXT &&
                     !item.content.startsWith("　")
                 ) item.copy(content = "　　" + item.content) else item
             }
-            _anchor.value = restoreAnchor
             _loading.value = false
         }
     }

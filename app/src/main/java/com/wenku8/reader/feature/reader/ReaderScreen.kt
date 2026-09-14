@@ -87,6 +87,7 @@ import com.wenku8.reader.core.designsystem.theme.ReaderColors
 import com.wenku8.reader.core.designsystem.theme.ReaderThemeMode
 import com.wenku8.reader.core.designsystem.theme.readerBodyStyle
 import com.wenku8.reader.core.designsystem.theme.readerColorsFor
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,6 +122,10 @@ fun ReaderScreen(
     var showBookmarks by remember { mutableStateOf(false) }
     var showBookmarkDialog by remember { mutableStateOf(false) }
 
+    // Single flip job so rapid taps cancel the previous animation instead of
+    // queueing competing animateScrollToPage calls.
+    var tapFlipJob by remember { mutableStateOf<Job?>(null) }
+
     val currentChapter = chapters.getOrNull(chapterIndex)
 
     // Failed illustrations register their screen rects here so the tap overlay
@@ -149,13 +154,19 @@ fun ReaderScreen(
     }
     val pagerState = rememberPagerState(initialPage = 0) { pages.size }
 
-    // Restore / re-anchor on content or anchor change.
-    LaunchedEffect(pages, anchor) {
+    // Restore position whenever pagination changes (chapter loaded, font size
+    // changed). Keyed on `pages`, NOT `anchor`: settling a page also updates
+    // the anchor, and keying on it re-ran this effect after every flip — its
+    // scrollToPage could cancel the in-flight forward gesture (the
+    // intermittent "next page dead" bug).
+    LaunchedEffect(pages) {
+        if (pages.isEmpty()) return@LaunchedEffect
         val target = ChapterPaginator.pageIndexForAnchor(pages, anchor)
         if (pagerState.currentPage != target) pagerState.scrollToPage(target)
+        viewModel.onPageSelected(pages, target)
     }
-    // Persist the stable anchor whenever a page settles.
-    LaunchedEffect(pagerState.settledPage, pages) {
+    // Persist the stable anchor when a user-driven flip settles.
+    LaunchedEffect(pagerState.settledPage) {
         if (pages.isNotEmpty()) viewModel.onPageSelected(pages, pagerState.settledPage)
     }
 
@@ -194,7 +205,7 @@ fun ReaderScreen(
                     Modifier
                         .fillMaxSize()
                         .onGloballyPositioned { tapLayerCoords = it }
-                        .pointerInput(Unit) {
+                        .pointerInput(pages) {
                             detectTapGestures { offset ->
                                 val rootPoint = tapLayerCoords?.localToRoot(offset) ?: offset
                                 if (errorRegions.contains(rootPoint.x, rootPoint.y)) {
@@ -203,14 +214,18 @@ fun ReaderScreen(
                                 }
                                 val w = size.width
                                 when {
-                                    offset.x < w / 3f -> scope.launch {
-                                        if (pagerState.currentPage > 0) {
-                                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                    offset.x < w / 3f -> {
+                                        val target = pagerState.currentPage - 1
+                                        if (target >= 0) {
+                                            tapFlipJob?.cancel()
+                                            tapFlipJob = scope.launch { pagerState.animateScrollToPage(target) }
                                         }
                                     }
-                                    offset.x > w * 2f / 3f -> scope.launch {
-                                        if (pagerState.currentPage < pages.size - 1) {
-                                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                    offset.x > w * 2f / 3f -> {
+                                        val target = pagerState.currentPage + 1
+                                        if (target < pages.size) {
+                                            tapFlipJob?.cancel()
+                                            tapFlipJob = scope.launch { pagerState.animateScrollToPage(target) }
                                         }
                                     }
                                     else -> showBars = !showBars
