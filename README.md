@@ -32,17 +32,17 @@
 
 ## 🛠 技术栈
 
-| 领域   | 技术                                      |
-| ---- | --------------------------------------- |
-| UI   | Jetpack Compose + Material 3            |
-| 架构   | MVVM + Repository 模式                    |
-| 异步   | Kotlin Coroutines / Flow                |
-| 依赖注入 | Hilt                                    |
-| 本地存储 | Room（收藏/进度/书签/搜索历史）+ DataStore（偏好）      |
-| 网络   | OkHttp（wenku8 自定义 Base64 协议）            |
+| 领域   | 技术                                         |
+| ---- | ------------------------------------------ |
+| UI   | Jetpack Compose + Material 3               |
+| 架构   | MVVM + Repository 模式                       |
+| 异步   | Kotlin Coroutines / Flow                   |
+| 依赖注入 | Hilt                                       |
+| 本地存储 | Room（收藏/进度/书签/搜索历史）+ DataStore（偏好）         |
+| 网络   | OkHttp（wenku8 自定义 Base64 协议）               |
 | 图片   | Coil 加载正文插图；封面走自定义 `do=cover` 二进制接口 + 内存缓存 |
-| 动效   | Compose Animation                      |
-| 字体   | 阅读正文使用中文衬线（Noto Serif / 宋体系）            |
+| 动效   | Compose Animation                          |
+| 字体   | 阅读正文使用中文衬线（Noto Serif / 宋体系）               |
 
 ## 🏗 项目结构
 
@@ -71,11 +71,10 @@ wenku8-reader/
 
 数据来自 wenku8 的 Android 接口：
 
-- **Base URL**：`http://app.wenku8.cn/android.php`（明文 HTTP，应用内已做网络安全配置放行）
 - **协议**：`POST request = Base64(UTF-8("action=…&do=…"))`
 - 已实测验证的端点与响应格式详见 [`docs/Wenku8API-接口文档.md`](docs/Wenku8API-接口文档.md)
 
-> 已知限制：列表（排行/最新/文库）的旧接口已废弃，当前服务器仅网页端可用且需登录，故本应用以**搜索**为唯一发现入口。
+> 
 
 ## 🚀 构建
 
